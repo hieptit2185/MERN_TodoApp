@@ -8,7 +8,6 @@ function Todoitem(props) {
     const [value, setValue] = useState(todo.content)
 
     const removeTodo = () => {
-        console.log(todo.content);
         handleRemove(todo._id)
     }
 

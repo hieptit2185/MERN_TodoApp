@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react'
+import { Link } from 'react-router-dom';
 
 function Pagination({ perPage, totalTodo, paginate, currentPage }) {
     const pageNumber = [];
@@ -10,23 +11,23 @@ function Pagination({ perPage, totalTodo, paginate, currentPage }) {
         <>
             <nav aria-label="Page navigation example">
                 <ul className="pagination">
-                    {/* <li className="page-item"><a className="page-link" href="#">Previous</a></li>
-                    <li className="page-item"><a className="page-link" href="#">1</a></li>
-                    <li className="page-item"><a className="page-link" href="#">2</a></li>
-                    <li className="page-item"><a className="page-link" href="#">3</a></li>
-                    <li className="page-item"><a className="page-link" href="#">Next</a></li> */}
                     {pageNumber.map(number => {
                         return (
                             <li key={number} className="page-item">
-                                <button className="page-link"
-                                    onClick={() => paginate(number)}
+                                <Link
+                                    to={`page=${number}`}
+                                    className="page-link"
+                                    onClick={() => {
+                                        paginate(number)
+                                        // history.push(`todos?page=${number}`)
+                                    }}
                                     style={number === currentPage ? {
                                         color: '#fff',
                                         backgroundColor: '#333',
                                     } : {}}
                                 >
                                     {number}
-                                </button>
+                                </Link>
                             </li>)
                     })}
                 </ul>

@@ -70,11 +70,15 @@ app.get("/todo/all", async (req, res) => {
 })
 
 
-// app.get('/todo/dateDown', async (req, res) => {
-//     const todos = await Todo.find();
-//     const result = todos.sort((a, b) => new Date(b.due_date) - new Date(a.due_date))
-//     res.json(result);
-// })
+app.get('/todo/dateUp', async (req, res) => {
+    const todos = await Todo.find().sort({ "due_date": 1 })
+    res.json(todos);
+})
+
+app.get('/todo/dateDown', async (req, res) => {
+    const todos = await Todo.find().sort({ "due_date": -1 })
+    res.json(todos);
+})
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)

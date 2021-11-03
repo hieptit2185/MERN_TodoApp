@@ -25,3 +25,7 @@ input[type="text"] {
     width: 600px;
 
 }
+
+.react-datepicker__input-container >input[type="text"]{
+    border: 1px solid black;
+}

@@ -5,6 +5,9 @@ import React from "react";
 import "antd/dist/antd.css";
 import { useState, useEffect } from "react";
 import Pagination from "./component/Pagination";
+import {
+  BrowserRouter as Router
+} from "react-router-dom";
 
 export default function App() {
   const [todos, setTodos] = useState([]);
@@ -18,27 +21,35 @@ export default function App() {
   const indexOfLastTodo = currentPage * perPage;
   const indexOfFirstTodo = indexOfLastTodo - perPage;
   const currentTodo = todos.slice(indexOfFirstTodo, indexOfLastTodo);
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const getData = () => {
-    fetch(api + "/todos")
-      .then((res) => res.json())
-      .then((data) => setTodos(data))
-      .catch((err) => console.error("Error", err));
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber)
   };
 
+  // const getData = () => {
+  //   fetch(api + "/todos")
+  //     .then((res) => res.json())
+  //     .then((data) => setTodos(data))
+  //     .catch((err) => console.error("Error", err));
+  // };
+
   useEffect(() => {
-    getData();
+    // getData();
     const pageData = window.localStorage.getItem("currentPage");
     const todoData = window.localStorage.getItem("todos");
+    const statusData = window.localStorage.getItem("status");
+    const timeData = window.localStorage.getItem("time");
     setCurrentPage(JSON.parse(pageData));
     setTodos(JSON.parse(todoData));
+    setSortStatus(JSON.parse(statusData));
+    setSortTime(JSON.parse(timeData));
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem("currentPage", JSON.stringify(currentPage));
     window.localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos, currentPage]);
+    window.localStorage.setItem("status", JSON.stringify(sortStatus));
+    window.localStorage.setItem("time", JSON.stringify(sortTime));
+  }, [todos, currentPage, sortStatus, sortTime]);
 
   const handleAdd = async (todo) => {
     const data = await fetch(api + "/todo/new", {
@@ -51,12 +62,12 @@ export default function App() {
         due_date: date,
       }),
     }).then((res) => res.json());
-    console.log(data);
     if (todo.trim() !== "") {
       setTodos((prev) => [data, ...prev]);
     } else {
       alert("Error");
     }
+    setCurrentPage(1)
   };
 
   const handleRemove = async (id) => {
@@ -69,10 +80,11 @@ export default function App() {
 
   const handleChageDate = (value) => {
     if (value) {
-      const dates = value.format("MM/DD/YYYY");
-      setDate(dates);
+      const newDate = value.format('MM/DD/YYYY');
+      setDate(newDate);
     }
   };
+
 
   const handleEdit = async (id, value) => {
     const data = await fetch(api + "/todo/update/" + id, {
@@ -108,7 +120,6 @@ export default function App() {
     let newTodos = todos;
     // const res = await fetch()
     const data = await fetch(api + `/todo/${status}`).then((res) => res.json());
-
     switch (status) {
       case "completed":
         newTodos = data;
@@ -129,51 +140,54 @@ export default function App() {
   const filterDate = async (time) => {
     setSortTime(time);
     // let newTodos = todos;
-    // const dateUp = await fetch(api + "/todo/dateUp").then((res) => res.json());
-    // const dateDown = await fetch(api + "/todo/dateDown").then((res) =>
-    //   res.json()
-    // );
+    // const data1 = await fetch(api + '/todo/dateUp').then(res => res.json());
+    // const data2 = await fetch(api + '/todo/dateDown').then(res => res.json());
     switch (time) {
       case "due-date-desc":
-        // newTodos = dateDown;
+        // newTodos = data2
         // break;
         return todos.sort(
           (a, b) => new Date(b.due_date) - new Date(a.due_date)
         );
+
       case "added-date-asc":
-        // newTodos = dateUp;
-        // break;
         return todos.sort(
           (a, b) => new Date(a.due_date) - new Date(b.due_date)
         );
+      // newTodos = data1
+      // break;
       default:
         return;
     }
+    // setTodos(newTodos);
   };
 
   return (
-    <div className="App container m-5 p-2 rounded mx-auto bg-light shadow ">
-      <Header
-        handleAdd={handleAdd}
-        todos={todos}
-        handleChageDate={handleChageDate}
-      />
-      <Content
-        handleEdit={handleEdit}
-        handleRemove={handleRemove}
-        status={sortStatus}
-        todos={currentTodo}
-        markCompleted={markCompleted}
-        sortTime={sortTime}
-        onFilterDate={filterDate}
-        onFilterStatus={filterStatus}
-      />
-      <Pagination
-        totalTodo={todos.length}
-        perPage={perPage}
-        paginate={paginate}
-        currentPage={currentPage}
-      />
-    </div>
+    <Router>
+      <div className="App container m-5 p-2 rounded mx-auto bg-light shadow ">
+        <Header
+          handleAdd={handleAdd}
+          todos={todos}
+          handleChageDate={handleChageDate}
+          date={date}
+        />
+        <Content
+          handleEdit={handleEdit}
+          handleRemove={handleRemove}
+          status={sortStatus}
+          todos={currentTodo}
+          markCompleted={markCompleted}
+          sortTime={sortTime}
+          onFilterDate={filterDate}
+          onFilterStatus={filterStatus}
+        />
+        <Pagination
+          totalTodo={todos.length}
+          perPage={perPage}
+          paginate={paginate}
+          currentPage={currentPage}
+        />
+      </div>
+    </Router>
   );
 }

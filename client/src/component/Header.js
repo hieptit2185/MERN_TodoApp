@@ -5,9 +5,12 @@ import { useState, useRef, useEffect } from 'react';
 export const Header = (props) => {
     const { handleAdd, handleChageDate } = props;
     const [text, setText] = useState('');
+
+
     const AddTodo = () => {
         handleAdd(text);
         setText('')
+        inputRef.current.focus()
     }
 
     const handleKeypress = (e) => {
@@ -15,7 +18,6 @@ export const Header = (props) => {
             AddTodo();
         }
     }
-
     const inputRef = useRef()
     useEffect(() => {
         inputRef.current.focus()
@@ -42,7 +44,7 @@ export const Header = (props) => {
                         <div className="col-auto m-0 px-2 d-flex align-items-center">
                             <DatePicker
                                 onChange={handleChageDate}
-                                onBlur={(e) => handleChageDate('')}
+                                placeholder="Due_date..."
                             />
                         </div>
                         <div className="col-auto px-0 mx-0 mr-2">
