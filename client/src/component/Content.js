@@ -1,16 +1,23 @@
 import React, { memo } from 'react'
 import Todoitem from './Todoitem';
+import { useHistory } from 'react-router-dom';
+
 
 function Content(props) {
-    const { todos, handleRemove, markCompleted, handleEdit, status, sortTime, onFilterDate, onFilterStatus } = props;
+    const { todos, handleRemove, markCompleted, handleEdit,
+        status, sortTime, onFilterDate, onFilterStatus, handleTheme, theme } = props;
+    const history = useHistory();
     return (
         <div className="content">
             <div className="row m-1 p-3 px-5 justify-content-end">
                 <div className="col-auto d-flex align-items-center">
                     <label className="text-secondary my-2 pr-2 view-opt-label">Filter</label>
-                    <select className="custom-select custom-select-sm btn my-2 border-secondary mx-3"
+                    <select className="custom-select custom-select-sm btns my-2 border-secondary mx-3"
                         value={status}
-                        onChange={(e) => onFilterStatus(e.target.value)}
+                        onChange={(e) => {
+                            history.push(sortTime || status || (sortTime && status) ? { search: `?filter=${e.target.value}&sortBy=${sortTime}` } : { search: `?filter=${e.target.value}` })
+                            onFilterStatus(e.target.value)
+                        }}
                     >
                         <option value="all" >All</option>
                         <option value="completed">Completed</option>
@@ -19,12 +26,15 @@ function Content(props) {
                 </div>
                 <div className="col-auto d-flex align-items-center px-1 pr-3">
                     <label className="text-secondary my-2 view-opt-label mx-3">Sort</label>
-                    <select className="custom-select custom-select-sm btn my-2 border-secondary"
+                    <select className="custom-select custom-select-sm btns my-2 border-secondary"
                         value={sortTime}
-                        onChange={(e) => onFilterDate(e.target.value)}
+                        onChange={(e) => {
+                            onFilterDate(e.target.value)
+                            history.push(sortTime || status || (sortTime && status) ? { search: `?sortBy=${e.target.value}&filter=${status}` } : { search: `?sortBy=${e.target.value}` })
+                        }}
                     >
-                        <option value="added-date-asc" >DateUp</option>
-                        <option value="due-date-desc">DateDown</option>
+                        <option value="dateUp" >DateUp</option>
+                        <option value="dateDown">DateDown</option>
                     </select>
                 </div>
             </div>
@@ -41,6 +51,17 @@ function Content(props) {
                         todos={todos}
                     />
                 })}
+            </div>
+            <div className="theme-switch-wrapper">
+                <label className="theme-switch" htmlFor="checkbox">
+                    <input
+                        type="checkbox"
+                        id="checkbox"
+                        checked={theme.isLightTheme}
+                        onClick={() => handleTheme()}
+                    />
+                    <div className="slider round"></div>
+                </label>
             </div>
         </div>
     )

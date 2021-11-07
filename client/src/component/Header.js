@@ -1,12 +1,12 @@
 import React from 'react';
 import { DatePicker } from 'antd';
 import { useState, useRef, useEffect } from 'react';
+import { Button, Input } from 'reactstrap';
+import moment from 'moment';
 
 export const Header = (props) => {
-    const { handleAdd, handleChageDate } = props;
+    const { handleAdd, handleChageDate, date } = props;
     const [text, setText] = useState('');
-
-
     const AddTodo = () => {
         handleAdd(text);
         setText('')
@@ -32,10 +32,10 @@ export const Header = (props) => {
                 <div className="col col-11 mx-auto">
                     <div className="row bg-white rounded shadow-sm p-2 add-todo-wrapper align-items-center justify-content-center">
                         <div className="col">
-                            <input
-                                className="form-control form-control-lg border-0 add-todo-input bg-transparent rounded"
-                                type="text" placeholder="Add new .." autoFocus
+                            <Input
+                                placeholder="Add new .." autoFocus
                                 value={text}
+                                bsSize="sm"
                                 ref={inputRef}
                                 onChange={e => setText(e.target.value)}
                                 onKeyUp={handleKeypress}
@@ -45,16 +45,16 @@ export const Header = (props) => {
                             <DatePicker
                                 onChange={handleChageDate}
                                 placeholder="Due_date..."
+                                value={date ? moment(date) : ""}
                             />
                         </div>
                         <div className="col-auto px-0 mx-0 mr-2">
-                            <button
-                                type="button"
-                                className="btn btn-primary"
+                            <Button
                                 onClick={AddTodo}
+                                color="success"
                             >
                                 Add
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

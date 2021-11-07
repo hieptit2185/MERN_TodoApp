@@ -1,33 +1,32 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react'
-import { Link } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
-function Pagination({ perPage, totalTodo, paginate, currentPage }) {
+function Pagination({ perPage, totalTodo, paginate, currentPage, status, sortTime }) {
     const pageNumber = [];
     for (var i = 1; i <= Math.ceil(totalTodo / perPage); i++) {
         pageNumber.push(i)
     }
+    const history = useHistory();
     return (
         <>
             <nav aria-label="Page navigation example">
                 <ul className="pagination">
-                    {pageNumber.map(number => {
+                    {pageNumber.map((number) => {
                         return (
-                            <li key={number} className="page-item">
-                                <Link
-                                    to={`page=${number}`}
-                                    className="page-link"
+                            <li key={number} className=" page-item">
+                                <button
+                                    className={currentPage ? "page-link pageActive" : "page-link"}
                                     onClick={() => {
                                         paginate(number)
-                                        // history.push(`todos?page=${number}`)
+                                        history.push(
+                                            (status && sortTime) || status || sortTime ? { search: `?page=${number}&filter=${status}&sortBy=${sortTime}` } :
+                                                { search: `?page=${number}` }
+                                        )
                                     }}
-                                    style={number === currentPage ? {
-                                        color: '#fff',
-                                        backgroundColor: '#333',
-                                    } : {}}
                                 >
                                     {number}
-                                </Link>
+                                </button>
                             </li>)
                     })}
                 </ul>
