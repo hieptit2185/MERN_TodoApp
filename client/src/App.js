@@ -4,71 +4,108 @@ import "./assets/index.css";
 import React from "react";
 import "antd/dist/antd.css";
 import { useState, useEffect } from "react";
+import { useLocation, useHistory } from "react-router-dom";
+import queryString from "query-string";
+import axios from "axios";
 import Pagination from "./component/Pagination";
-import { useLocation } from 'react-router-dom';
-import queryString from 'query-string';
-
 
 export default function App() {
   const [todos, setTodos] = useState([]);
   const [date, setDate] = useState(null);
   const [sortStatus, setSortStatus] = useState("all");
   const [sortTime, setSortTime] = useState("dateUp");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage] = useState(4);
+  const [pageCount, setPageCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 4;
   const [theme, setTheme] = useState({
     isLightTheme: true,
     light: {
-      background: 'rgb(240,240,240)',
-      color: 'black',
+      background: "rgb(240,240,240)",
+      color: "black",
     },
     dark: {
-      background: 'rgb(39,39,39)',
-      color: 'white',
-    }
-  })
+      background: "rgb(39,39,39)",
+      color: "white",
+    },
+  });
 
-  const handleTheme = () => {
-    setTheme({ ...theme, isLightTheme: !theme.isLightTheme })
-  }
+  const history = useHistory();
   const api = "http://localhost:6969";
 
+  const { search } = useLocation();
 
-  const indexOfLastTodo = currentPage * perPage;
-  const indexOfFirstTodo = indexOfLastTodo - perPage;
-  const currentTodo = todos.slice(indexOfFirstTodo, indexOfLastTodo);
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber)
+  const getTodos = (term = {}) => {
+    axios
+      .get(api + "/todos", {
+        params: {
+          // page: currentPage,
+          limit: 4,
+          page: 1,
+          ...term,
+        },
+      })
+      .then((res) => {
+        const { itemPage, pages } = res.data;
+        setTodos(itemPage);
+        setPageCount(pages.pageCount);
+      });
   };
-
-  const getTodos = () => {
-    fetch(api + "/todos")
-      .then((res) => res.json())
-      .then((data) => setTodos(data))
-      .catch((err) => console.error("Error", err));
-  };
-
-  const getTodoByStatus = (status) => {
-    fetch(api + `/todo/${status}`)
-      .then(res => res.json())
-      .then(data => setTodos(data))
-  }
-
+  console.log(currentPage)
   useEffect(() => {
-    getTodos();
+    const { page = 1, status, sortBy, limit } = queryString.parse(search);
+    setCurrentPage(+page - 1)
+    if (status === "completed") {
+      setSortStatus(status);
+      getTodos({ status: true, limit, page });
+    }
+    if (status === "active") {
+      setSortStatus(status);
+      getTodos({ status: false, limit, page });
+    }
+    if (status === "all") {
+      setSortStatus(status);
+      getTodos({ limit, page });
+    }
+    if (status !== "active" && status !== "all" && status !== "completed") {
+      getTodos({});
+    }
+    setPageCount(Math.ceil(todos.length / PAGE_SIZE));
   }, []);
-  const { search } = useLocation()
-  const { page, filter, sortBy } = queryString.parse(search);
 
-  useEffect(() => {
-    getTodoByStatus(filter)
-  }, [filter])
+  const handlePageClick = (event) => {
+    const currentP = event.selected + 1;
+    setCurrentPage(event.selected)
+    history.push({
+      search: `?page=${currentP}&limit=${PAGE_SIZE}&status=${(sortStatus === "active" && "active") ||
+        (sortStatus === "completed" && "completed") ||
+        (sortStatus === "all" && "all")
+        }&order=${(sortTime === "dateDown" && "desc") || (sortTime === "dateUp" && "asc")}`,
+    });
+    if (sortStatus !== "all") {
+      getTodos({
+        page: currentP,
+        limit: PAGE_SIZE,
+        status:
+          (sortStatus === "active" && false) ||
+          (sortStatus === "completed" && true),
+        order:
+          (sortTime === "dateDown" && "desc") ||
+          (sortTime === "dateUp" && "asc"),
+      });
+    } else {
+      getTodos({
+        page: currentP,
+        limit: PAGE_SIZE,
+        order:
+          (sortTime === "dateDown" && "desc") ||
+          (sortTime === "dateUp" && "asc"),
+      });
+    }
+  };
 
-  useEffect(() => {
-    setCurrentPage(page ? page : 1)
-    setSortStatus(filter)
-    setSortTime(sortBy ? sortBy : "dateUp")
-  }, [page, filter, sortBy])
+  const handleTheme = () => {
+    setTheme({ ...theme, isLightTheme: !theme.isLightTheme });
+  };
 
   const handleAdd = async (todo) => {
     const data = await fetch(api + "/todo/new", {
@@ -87,8 +124,7 @@ export default function App() {
       alert("Error");
     }
 
-    setDate("")
-    setCurrentPage(1)
+    setDate("");
   };
 
   const handleRemove = async (id) => {
@@ -101,11 +137,10 @@ export default function App() {
 
   const handleChageDate = (value) => {
     if (value) {
-      const newDate = value.format('MM/DD/YYYY');
+      const newDate = value.format("MM/DD/YYYY");
       setDate(newDate);
     }
   };
-
 
   const handleEdit = async (id, value) => {
     const data = await fetch(api + "/todo/update/" + id, {
@@ -138,55 +173,50 @@ export default function App() {
 
   const filterStatus = async (status) => {
     setSortStatus(status);
-    let newTodos = todos;
-    // const res = await fetch()
-    const data = await fetch(api + `/todo/${status}`).then((res) => res.json());
+    setCurrentPage(0)
     switch (status) {
       case "completed":
-        newTodos = data;
-        break;
+        return getTodos({ status: true, page: 1 });
       case "active":
-        newTodos = data;
-        break;
+        return getTodos({ status: false, page: 1 });
       case "all":
-        newTodos = data;
-        break;
+        return getTodos({});
       default:
-        return;
+        throw new Error("Error");
     }
-    setCurrentPage(1);
-    setTodos(newTodos);
   };
 
   const filterDate = async (time) => {
     setSortTime(time);
-    // let newTodos = todos;
-    // const data1 = await fetch(api + '/todo/dateUp').then(res => res.json());
-    // const data2 = await fetch(api + '/todo/dateDown').then(res => res.json());
     switch (time) {
-      case "dateDown":
-        // newTodos = data2
-        // break;
-        return todos.sort(
-          (a, b) => new Date(b.due_date) - new Date(a.due_date)
-        );
-
       case "dateUp":
-        return todos.sort(
-          (a, b) => new Date(a.due_date) - new Date(b.due_date)
-        );
-      // newTodos = data1
-      // break;
+        if (sortStatus === "completed") {
+          return getTodos({ order: "asc", page: 1, status: true });
+        }
+        if (sortStatus === "active") {
+          return getTodos({ order: "asc", page: 1, status: false });
+        }
+        return getTodos({ order: "asc", page: 1 });
+      case "dateDown":
+        if (sortStatus === "completed") {
+          return getTodos({ order: "desc", page: 1, status: true });
+        }
+        if (sortStatus === "active") {
+          return getTodos({ order: "desc", page: 1, status: false });
+        }
+        return getTodos({ order: "desc", page: 1 });
       default:
-        return;
+        throw new Error("Error");
     }
-    // setTodos(newTodos);
   };
 
-  const style = theme.isLightTheme ? { ...theme.light } : { ...theme.dark }
+  const style = theme.isLightTheme ? { ...theme.light } : { ...theme.dark };
 
   return (
-    <div className="App container m-5 p-2 rounded mx-auto shadow " style={style}>
+    <div
+      className="App container m-5 p-2 rounded mx-auto shadow "
+      style={style}
+    >
       <Header
         handleAdd={handleAdd}
         todos={todos}
@@ -197,7 +227,7 @@ export default function App() {
         handleEdit={handleEdit}
         handleRemove={handleRemove}
         status={sortStatus}
-        todos={currentTodo}
+        todos={todos}
         markCompleted={markCompleted}
         sortTime={sortTime}
         onFilterDate={filterDate}
@@ -206,12 +236,9 @@ export default function App() {
         theme={theme}
       />
       <Pagination
-        totalTodo={todos.length}
-        perPage={perPage}
-        paginate={paginate}
-        currentPage={currentPage}
-        status={sortStatus}
-        sortTime={sortTime}
+        handlePageClick={handlePageClick}
+        pageCount={pageCount}
+        currentPage={+currentPage}
       />
     </div>
   );

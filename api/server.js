@@ -17,10 +17,23 @@ mongoose.connect(`mongodb+srv://khachiep:khachiep12@cluster0.75k6z.mongodb.net/m
     .catch(console.error)
 
 const Todo = require('./models/Todo');
+const { query } = require('express');
+
+
 
 app.get("/todos", async (req, res) => {
-    const todos = await Todo.find();
-    res.json(todos);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const todos = await Todo.find(req.query).sort({ "due_date": req.query.order })
+    const itemPage = todos.slice(startIndex, endIndex)
+    const pages = {
+        pageCount: Math.ceil(todos.length / 4),
+        page: page,
+        limit: limit,
+    }
+    res.json({ pages, itemPage });
 })
 
 app.post('/todo/new', (req, res) => {
@@ -48,37 +61,9 @@ app.delete('/todo/delete/:id', async (req, res) => {
 
 app.put('/todo/update/:id', async (req, res) => {
     const result = await Todo.findByIdAndUpdate(req.params.id, { content: req.body.content })
-
     res.json(result);
 })
 
-app.get('/todo/completed/', async (req, res) => {
-    const todos = await Todo.find();
-    const result = todos.filter(todo => todo.status === true);
-    res.json(result);
-})
-
-app.get('/todo/active', async (req, res) => {
-    const todos = await Todo.find();
-    const result = todos.filter(todo => todo.status === false);
-    res.json(result);
-})
-
-app.get("/todo/all", async (req, res) => {
-    const todos = await Todo.find();
-    res.json(todos);
-})
-
-
-app.get('/todo/dateUp', async (req, res) => {
-    const todos = await Todo.find().sort({ "due_date": 1 })
-    res.json(todos);
-})
-
-app.get('/todo/dateDown', async (req, res) => {
-    const todos = await Todo.find().sort({ "due_date": -1 })
-    res.json(todos);
-})
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)

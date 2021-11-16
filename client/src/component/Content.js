@@ -15,7 +15,7 @@ function Content(props) {
                     <select className="custom-select custom-select-sm btns my-2 border-secondary mx-3"
                         value={status}
                         onChange={(e) => {
-                            history.push(sortTime || status || (sortTime && status) ? { search: `?filter=${e.target.value}&sortBy=${sortTime}` } : { search: `?filter=${e.target.value}` })
+                            history.push(sortTime || status || (sortTime && status) ? { search: `?status=${e.target.value}&sortBy=${sortTime}` } : { search: `?status=${e.target.value}` })
                             onFilterStatus(e.target.value)
                         }}
                     >
@@ -30,11 +30,11 @@ function Content(props) {
                         value={sortTime}
                         onChange={(e) => {
                             onFilterDate(e.target.value)
-                            history.push(sortTime || status || (sortTime && status) ? { search: `?sortBy=${e.target.value}&filter=${status}` } : { search: `?sortBy=${e.target.value}` })
+                            history.push(sortTime || status || (sortTime && status) ? { search: `?sortBy=${e.target.value}&status=${status}` } : { search: `?sortBy=${e.target.value}` })
                         }}
                     >
-                        <option value="dateUp" >DateUp</option>
-                        <option value="dateDown">DateDown</option>
+                        <option value="dateUp"  >DateUp</option>
+                        <option value="dateDown" >DateDown</option>
                     </select>
                 </div>
             </div>

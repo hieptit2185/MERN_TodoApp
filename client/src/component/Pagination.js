@@ -1,38 +1,26 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react'
-import { useHistory } from 'react-router-dom';
+import ReactPaginate from "react-paginate";
 
-function Pagination({ perPage, totalTodo, paginate, currentPage, status, sortTime }) {
-    const pageNumber = [];
-    for (var i = 1; i <= Math.ceil(totalTodo / perPage); i++) {
-        pageNumber.push(i)
-    }
-    const history = useHistory();
+
+
+function Pagination({ handlePageClick, pageCount, currentPage }) {
+    console.log(currentPage)
     return (
         <>
-            <nav aria-label="Page navigation example">
-                <ul className="pagination">
-                    {pageNumber.map((number) => {
-                        return (
-                            <li key={number} className=" page-item">
-                                <button
-                                    className={currentPage ? "page-link pageActive" : "page-link"}
-                                    onClick={() => {
-                                        paginate(number)
-                                        history.push(
-                                            (status && sortTime) || status || sortTime ? { search: `?page=${number}&filter=${status}&sortBy=${sortTime}` } :
-                                                { search: `?page=${number}` }
-                                        )
-                                    }}
-                                >
-                                    {number}
-                                </button>
-                            </li>)
-                    })}
-                </ul>
-            </nav>
+            <ReactPaginate
+                onPageChange={handlePageClick}
+                previousLabel={"Previous"}
+                nextLabel={"Next"}
+                pageCount={pageCount}
+                containerClassName={"paginationBttns"}
+                previousLinkClassName={"previousBttn"}
+                nextLinkClassName={"nextBttn"}
+                disabledClassName={"paginationDisabled"}
+                activeClassName={"paginationActive"}
+                forcePage={currentPage}
+            />
         </>
-    )
+    );
 }
 
 export default Pagination
